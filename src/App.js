@@ -9,7 +9,10 @@ const DrawingGrid = () => {
 			.map(() => Array(GRID_SIZE).fill(false))
 	);
 	const [selectedPoints, setSelectedPoints] = useState([]);
+	const [color, setColor] = useState("blue"); // Cor padrão
 	const [algorithm, setAlgorithm] = useState("bresenham");
+	const [fillAlgorithm, setFillAlgorithm] = useState("none");
+	const [boolFillAlgorithm, setBoolFillAlgorithm] = useState(false);
 
 	// Implementação do algoritmo de Bresenham
 	const bresenhamLine = (x0, y0, x1, y1) => {
@@ -138,6 +141,27 @@ const DrawingGrid = () => {
 		return points;
 	};
 
+	const recursiveFill = (grid, x, y, targetColor, fillColor) => {
+		if (x < 0 || x >= GRID_SIZE || y < 0 || y >= GRID_SIZE) return; // Fora dos limites
+		if (grid[x][y] === targetColor) return; // Não é a cor alvo
+		if (grid[x][y] === fillColor) return; 
+
+		grid[x][y] = fillColor; // Preenche a cor
+
+		// Chama recursivamente para as células adjacentes
+		recursiveFill(grid, x + 1, y, targetColor, fillColor); // Cima
+		recursiveFill(grid, x - 1, y, targetColor, fillColor); // Baixo
+		recursiveFill(grid, x, y + 1, targetColor, fillColor); // Direita
+		recursiveFill(grid, x, y - 1, targetColor, fillColor); // Esquerda
+	};
+
+	const handleFillAlgorithmClick = () => {
+		setFillAlgorithm((prev) =>
+			prev === "recursive" ? "none" : "recursive"
+		);
+		setBoolFillAlgorithm((prev) => !prev); // Alterna o estado booleano
+	};
+
 	const handleCellClick = (row, col) => {
 		if (selectedPoints.length === 0) {
 			setSelectedPoints([[row, col]]);
@@ -164,15 +188,27 @@ const DrawingGrid = () => {
 
 			const newGrid = Array(GRID_SIZE)
 				.fill()
-				.map(() => Array(GRID_SIZE).fill(false));
+				.map(() => Array(GRID_SIZE).fill(null));
 			points.forEach(([x, y]) => {
 				if (x >= 0 && x < GRID_SIZE && y >= 0 && y < GRID_SIZE) {
-					newGrid[x][y] = true;
+					newGrid[x][y] = color;
 				}
 			});
 			setGrid(newGrid);
 			setSelectedPoints([]);
 		}
+	};
+
+	const handleFillClick = (row, col) => {
+		// if (fillAlgorithm === "recursive") {
+			console.log("ASSSSSSSSSSSSSA");
+			if (grid[row][col] !== "blue") {
+				// Verifica se é uma cor válida
+				const newGrid = grid.map((r) => r.slice()); // Cria uma cópia da grade
+				recursiveFill(newGrid, row, col, "blue", "purple");
+				setGrid(newGrid);
+			}
+		// }
 	};
 
 	const clearGrid = () => {
@@ -199,15 +235,23 @@ const DrawingGrid = () => {
 							<div
 								key={`${i}-${j}`}
 								className={`w-6 h-6 border border-gray-300 cursor-pointer ${
-									cell
+									cell === "blue"
 										? "bg-blue-500"
+										: cell === "purple"
+										? "bg-purple-500"
 										: selectedPoints.some(
 												([x, y]) => x === i && y === j
 										  )
 										? "bg-green-500"
 										: "bg-white"
 								}`}
-								onClick={() => handleCellClick(i, j)}
+								onClick={() => {
+									if (boolFillAlgorithm === false) {
+										handleCellClick(i, j);
+									} else {
+										handleFillClick(i, j); // Preenche a área se o clique for em uma célula válida
+									}
+								}}
 							/>
 						))
 					)}
@@ -255,6 +299,19 @@ const DrawingGrid = () => {
 				>
 					Elipse
 				</button>
+
+				<button
+					className={`px-4 py-2 rounded-md ${
+						fillAlgorithm === "recursive"
+							? "bg-purple-500 text-white"
+							: "bg-gray-200 hover:bg-gray-300"
+					}`}
+					onClick={handleFillAlgorithmClick}
+					
+				>
+					Preeencher Área
+				</button>
+
 				<button
 					className="px-4 py-2 rounded-md bg-red-500 text-white hover:bg-red-600"
 					onClick={clearGrid}
