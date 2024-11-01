@@ -40,7 +40,6 @@ const DrawingGrid = () => {
 	// ! ===== ALGORITMOS =====
 	// ! ======================
 
-	// Implementação do algoritmo de Bresenham
 	const bresenhamLine = (x0, y0, x1, y1) => {
 		const points = [];
 		let dx = Math.abs(x1 - x0);
@@ -65,7 +64,6 @@ const DrawingGrid = () => {
 		return points;
 	};
 
-	// Implementação do algoritmo de círculo
 	const circlePoints = (x0, y0, x1, y1) => {
 		const points = [];
 		const radius = Math.floor(
@@ -75,15 +73,15 @@ const DrawingGrid = () => {
 		let y = 0;
 		let err = 0;
 
-		while (x >= y) {
+		while (x >= y) { // vai subindo do centro do círculo até o topo
 			points.push([x0 + x, y0 + y], [x0 + y, y0 + x]);
 			points.push([x0 - y, y0 + x], [x0 - x, y0 + y]);
 			points.push([x0 - x, y0 - y], [x0 - y, y0 - x]);
 			points.push([x0 + y, y0 - x], [x0 + x, y0 - y]);
 
 			y += 1;
-			err += 1 + 2 * y;
-			if (2 * (err - x) + 1 > 0) {
+			err += 1 + 2 * y; 
+			if (2 * (err - x) + 1 > 0) { //ajustar x para a esquerda
 				x -= 1;
 				err += 1 - 2 * x;
 			}
@@ -91,27 +89,7 @@ const DrawingGrid = () => {
 		return points;
 	};
 
-	// Função auxiliar para curva de Bezier
-	const bezierPoint = (t, p0, p1, p2) => {
-		const mt = 1 - t;
-		return Math.round(mt * mt * p0 + 2 * mt * t * p1 + t * t * p2);
-	};
 
-	// Implementação da curva de Bezier quadrática
-	const bezierCurve = (x0, y0, x1, y1) => {
-		const points = [];
-		const midX = (x0 + x1) / 2;
-		const controlY = Math.min(y0, y1) - 5;
-
-		for (let t = 0; t <= 1; t += 0.01) {
-			const x = bezierPoint(t, x0, midX, x1);
-			const y = bezierPoint(t, y0, controlY, y1);
-			points.push([Math.round(x), Math.round(y)]);
-		}
-		return points;
-	};
-
-	// Implementação do algoritmo de elipse
 	const ellipsePoints = (x0, y0, x1, y1) => {
 		const points = [];
 		const rx = Math.abs(x1 - x0);
@@ -181,25 +159,20 @@ const DrawingGrid = () => {
 		recursiveFill(grid, x, y - 1, targetColor, fillColor); // Esquerda
 	};
 
-	// Nova função para realizar a translação
 	const translateGrid = () => {
 		const dx = parseInt(translateX);
 		const dy = parseInt(translateY);
 
-		// Cria uma nova grade vazia
 		const newGrid = Array(GRID_SIZE)
 			.fill()
 			.map(() => Array(GRID_SIZE).fill(null));
 
-		// Para cada célula da grade original
 		for (let i = 0; i < GRID_SIZE; i++) {
 			for (let j = 0; j < GRID_SIZE; j++) {
 				if (grid[i][j]) {
-					// Calcula nova posição
 					const newI = i - dx;
 					const newJ = j + dy;
 
-					// Verifica se a nova posição está dentro dos limites da grade
 					if (
 						newI >= 0 &&
 						newI < GRID_SIZE &&
@@ -228,7 +201,6 @@ const DrawingGrid = () => {
 		return degrees * (Math.PI / 180);
 	};
 
-	// Nova função para realizar a rotação
 	const rotateGrid = () => {
 		if (!pivotPoint) {
 			alert("Por favor, selecione um ponto pivot primeiro!");
@@ -325,9 +297,6 @@ const DrawingGrid = () => {
 						break;
 					case "circle":
 						points = circlePoints(first[0], first[1], row, col);
-						break;
-					case "bezier":
-						points = bezierCurve(first[0], first[1], row, col);
 						break;
 					case "ellipse":
 						points = ellipsePoints(first[0], first[1], row, col);
@@ -452,16 +421,6 @@ const DrawingGrid = () => {
 					onClick={() => setAlgorithm("circle")}
 				>
 					Círculo
-				</button>
-				<button
-					className={`px-4 py-2 rounded-md ${
-						algorithm === "bezier"
-							? "bg-blue-500 text-white"
-							: "bg-gray-200 hover:bg-gray-300"
-					}`}
-					onClick={() => setAlgorithm("bezier")}
-				>
-					Curva Bezier
 				</button>
 				<button
 					className={`px-4 py-2 rounded-md ${

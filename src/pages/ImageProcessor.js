@@ -82,7 +82,7 @@ const ImageProcessor = () => {
 							value = applyGaussianFilter(data, i, canvas.width);
 							break;
 					}
-					data[i] = data[i + 1] = data[i + 2] = value;
+					data[i] = data[i + 1] = data[i + 2] = value; // escala de cinza, tudo o mesmo valor
 				}
 				break;
 
