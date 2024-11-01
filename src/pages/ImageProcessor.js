@@ -163,21 +163,16 @@ const ImageProcessor = () => {
 		for (let y = halfKernelSize; y < height - halfKernelSize; y++) {
 			for (let x = halfKernelSize; x < width - halfKernelSize; x++) {
 				for (let channel = 0; channel < 3; channel++) {
-					// Collect pixel values in the neighborhood
+					// 3 canais
 					const neighborValues = [];
 					for (let ky = -halfKernelSize; ky <= halfKernelSize; ky++) {
-						for (
-							let kx = -halfKernelSize;
-							kx <= halfKernelSize;
-							kx++
-						) {
+						for (let kx = -halfKernelSize; kx <= halfKernelSize; kx++) {
 							const pixelIndex =
 								((y + ky) * width + (x + kx)) * 4 + channel;
 							neighborValues.push(data[pixelIndex]);
 						}
 					}
 
-					// Apply noise reduction based on selected method
 					let reducedValue;
 					switch (method) {
 						case "average":
@@ -226,7 +221,6 @@ const ImageProcessor = () => {
 							break;
 					}
 
-					// Update the pixel value
 					newData[(y * width + x) * 4 + channel] =
 						Math.round(reducedValue);
 				}
@@ -348,6 +342,7 @@ const ImageProcessor = () => {
 			return { gradientData, directions };
 		};
 
+		// afinar as bordas
 		const nonMaxSuppression = (gradientData, directions, width, height) => {
 			const suppressedData = new Uint8ClampedArray(gradientData);
 
@@ -359,7 +354,7 @@ const ImageProcessor = () => {
 					let neighbor1 = 255,
 						neighbor2 = 255;
 
-					// Determine neighboring pixels based on gradient direction
+					// horizontal
 					if (
 						(angle >= -Math.PI / 8 && angle < Math.PI / 8) ||
 						angle < (-7 * Math.PI) / 8 ||
@@ -367,6 +362,7 @@ const ImageProcessor = () => {
 					) {
 						neighbor1 = gradientData[y * width + (x + 1)];
 						neighbor2 = gradientData[y * width + (x - 1)];
+						// diagonal 45
 					} else if (
 						(angle >= Math.PI / 8 && angle < (3 * Math.PI) / 8) ||
 						(angle >= (-7 * Math.PI) / 8 &&
@@ -374,6 +370,7 @@ const ImageProcessor = () => {
 					) {
 						neighbor1 = gradientData[(y + 1) * width + (x + 1)];
 						neighbor2 = gradientData[(y - 1) * width + (x - 1)];
+					// vertical
 					} else if (
 						(angle >= (3 * Math.PI) / 8 &&
 							angle < (5 * Math.PI) / 8) ||
@@ -382,6 +379,7 @@ const ImageProcessor = () => {
 					) {
 						neighbor1 = gradientData[(y + 1) * width + x];
 						neighbor2 = gradientData[(y - 1) * width + x];
+						// diagonal 135
 					} else {
 						neighbor1 = gradientData[(y + 1) * width + (x - 1)];
 						neighbor2 = gradientData[(y - 1) * width + (x + 1)];
@@ -406,8 +404,8 @@ const ImageProcessor = () => {
 		) => {
 			const thresholdedData = new Uint8ClampedArray(suppressedData);
 			const maxVal = Math.max(...suppressedData);
-			const lowThresholdVal = maxVal * lowThreshold;
-			const highThresholdVal = maxVal * highThreshold;
+			const lowThresholdVal = maxVal * lowThreshold; // se menor, descarta
+			const highThresholdVal = maxVal * highThreshold; // se maior, seleciona -> borda forte
 
 			for (let y = 1; y < height - 1; y++) {
 				for (let x = 1; x < width - 1; x++) {
@@ -418,7 +416,7 @@ const ImageProcessor = () => {
 					} else if (val < lowThresholdVal) {
 						thresholdedData[y * width + x] = 0;
 					} else {
-						// Check if connected to strong edge
+						// próximo de borda forte?
 						let isConnectedToStrongEdge = false;
 						for (let ky = -1; ky <= 1; ky++) {
 							for (let kx = -1; kx <= 1; kx++) {
@@ -444,7 +442,6 @@ const ImageProcessor = () => {
 			return thresholdedData;
 		};
 
-		// Perform edge detection based on selected method
 		let processedData;
 		switch (edgeDetectionMethod) {
 			case "sobel": {
@@ -490,7 +487,6 @@ const ImageProcessor = () => {
 			}
 		}
 
-		// Update canvas with edge-detected image
 		const processedImageData = ctx.createImageData(width, height);
 		for (let i = 0; i < processedData.length; i++) {
 			const value = processedData[i];
